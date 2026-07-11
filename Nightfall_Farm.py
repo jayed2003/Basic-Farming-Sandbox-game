@@ -65,7 +65,7 @@ rain_particles = []
 # Player
 player_pos = [0.0, 0.0, -350.0]
 player_angle = 0.0
-player_speed = 15.0
+player_speed = 7.5
 player_dead = False
 player_health = 100
 player_currency = 0
