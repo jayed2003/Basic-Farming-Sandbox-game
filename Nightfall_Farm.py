@@ -2291,13 +2291,6 @@ def specialKeyListener(key, x, y):
         glutPostRedisplay()
         return
 
-def keyboardUpListener(key, x, y):
-    global is_sprinting
-    key_lower = key.lower()
-    if key_lower in keys_pressed:
-        keys_pressed[key_lower] = False
-    is_sprinting = (glutGetModifiers() & GLUT_ACTIVE_SHIFT) != 0
-
     if game_state == "menu":
         if key == GLUT_KEY_UP:
             menu_selected = (menu_selected - 1) % len(MENU_ITEMS)
@@ -2339,6 +2332,13 @@ def keyboardUpListener(key, x, y):
         camera_angle -= 3.0
 
     glutPostRedisplay()
+
+def keyboardUpListener(key, x, y):
+    global is_sprinting
+    key_lower = key.lower()
+    if key_lower in keys_pressed:
+        keys_pressed[key_lower] = False
+    is_sprinting = (glutGetModifiers() & GLUT_ACTIVE_SHIFT) != 0
 
 
 def mouseListener(button, state, x, y):
