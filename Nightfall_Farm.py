@@ -132,6 +132,10 @@ particles = []  # [{"pos": [x,y,z], "vel": [vx,vy,vz], "color": (r,g,b), "life":
 # Day counter
 day_count = 1
 
+# Fluid movement tracking
+keys_pressed = {b'w': False, b'a': False, b's': False, b'd': False}
+is_sprinting = False
+
 # Stars
 STAR_POSITIONS = []
 for _i in range(300):
@@ -2056,7 +2060,12 @@ def keyboardListener(key, x, y):
     global hud_message, hud_message_timer, player_health, player_dead
     global crafting_selected, trading_selected, player_currency
     global first_person, current_trader, inventory_selected, death_selected
-    global auto_fire, tab_inventory_open
+    global auto_fire, tab_inventory_open, is_sprinting
+    
+    key_lower = key.lower()
+    if key_lower in keys_pressed:
+        keys_pressed[key_lower] = True
+    is_sprinting = (glutGetModifiers() & GLUT_ACTIVE_SHIFT) != 0
 
     # Dead state
     if game_state == "dead":
@@ -2178,27 +2187,7 @@ def keyboardListener(key, x, y):
         return
 
     # Play mode
-    if key == b'w' and not fishing_active:
-        nx = player_pos[0] + player_speed * math.sin(math.radians(player_angle))
-        nz = player_pos[2] + player_speed * math.cos(math.radians(player_angle))
-        nx = max(-GRID_LENGTH, min(GRID_LENGTH, nx))
-        nz = max(-GRID_LENGTH, min(GRID_LENGTH, nz))
-        if not hut_wall_collision(nx, nz):
-            player_pos[0] = nx
-            player_pos[2] = nz
-    elif key == b's' and not fishing_active:
-        nx = player_pos[0] - player_speed * math.sin(math.radians(player_angle))
-        nz = player_pos[2] - player_speed * math.cos(math.radians(player_angle))
-        nx = max(-GRID_LENGTH, min(GRID_LENGTH, nx))
-        nz = max(-GRID_LENGTH, min(GRID_LENGTH, nz))
-        if not hut_wall_collision(nx, nz):
-            player_pos[0] = nx
-            player_pos[2] = nz
-    elif key == b'a' and not fishing_active:
-        player_angle += 5.0
-    elif key == b'd' and not fishing_active:
-        player_angle -= 5.0
-    elif key == b'v':
+    if key == b'v':
         first_person = not first_person
         hud_message = "First Person" if first_person else "Third Person"
         hud_message_timer = 80
@@ -2290,7 +2279,9 @@ def keyboardListener(key, x, y):
 
 def specialKeyListener(key, x, y):
     global camera_height, camera_angle, menu_selected, crafting_selected, trading_selected
-    global inventory_selected, death_selected
+    global inventory_selected, death_selected, is_sprinting
+
+    is_sprinting = (glutGetModifiers() & GLUT_ACTIVE_SHIFT) != 0
 
     if game_state == "dead":
         if key == GLUT_KEY_UP:
@@ -2299,6 +2290,13 @@ def specialKeyListener(key, x, y):
             death_selected = min(1, death_selected + 1)
         glutPostRedisplay()
         return
+
+def keyboardUpListener(key, x, y):
+    global is_sprinting
+    key_lower = key.lower()
+    if key_lower in keys_pressed:
+        keys_pressed[key_lower] = False
+    is_sprinting = (glutGetModifiers() & GLUT_ACTIVE_SHIFT) != 0
 
     if game_state == "menu":
         if key == GLUT_KEY_UP:
@@ -2421,6 +2419,30 @@ def idle():
     global hud_message, hud_message_timer, game_state, player_dead
     global auto_fire_timer, player_angle, player_health
     if game_state == "play":
+        # Fluid Movement
+        if not fishing_active:
+            current_speed = player_speed * (2.0 if is_sprinting else 1.0)
+            if keys_pressed.get(b'w', False):
+                nx = player_pos[0] + current_speed * math.sin(math.radians(player_angle))
+                nz = player_pos[2] + current_speed * math.cos(math.radians(player_angle))
+                nx = max(-GRID_LENGTH, min(GRID_LENGTH, nx))
+                nz = max(-GRID_LENGTH, min(GRID_LENGTH, nz))
+                if not hut_wall_collision(nx, nz):
+                    player_pos[0] = nx
+                    player_pos[2] = nz
+            if keys_pressed.get(b's', False):
+                nx = player_pos[0] - current_speed * math.sin(math.radians(player_angle))
+                nz = player_pos[2] - current_speed * math.cos(math.radians(player_angle))
+                nx = max(-GRID_LENGTH, min(GRID_LENGTH, nx))
+                nz = max(-GRID_LENGTH, min(GRID_LENGTH, nz))
+                if not hut_wall_collision(nx, nz):
+                    player_pos[0] = nx
+                    player_pos[2] = nz
+            if keys_pressed.get(b'a', False):
+                player_angle += 5.0
+            if keys_pressed.get(b'd', False):
+                player_angle -= 5.0
+
         # Heal near hut
         if distance(player_pos, [-350, 0, 350]) < 100:
             player_health = min(100, player_health + 0.05)
@@ -2539,6 +2561,7 @@ def main():
     # Register callbacks
     glutDisplayFunc(showScreen)
     glutKeyboardFunc(keyboardListener)
+    glutKeyboardUpFunc(keyboardUpListener)
     glutSpecialFunc(specialKeyListener)
     glutMouseFunc(mouseListener)
     glutIdleFunc(idle)
