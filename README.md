@@ -31,6 +31,7 @@ Nightfall Farm drops you into a vibrant open world where you play as the **Cute 
 |-----|--------|
 | `W` / `S` | Move forward / backward |
 | `A` / `D` | Turn left / right |
+| `Shift` | Sprint (Hold while moving to move at 2x speed) |
 | `V` | Toggle first/third person camera |
 | `E` | Interact (harvest crops, pick carrots) |
 | `F` | Toggle fishing (near pond) |

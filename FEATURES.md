@@ -238,6 +238,7 @@
 | `S` | Move backward |
 | `A` | Turn left |
 | `D` | Turn right |
+| `Shift` | Sprint (Hold while moving to move at 2x speed) |
 | `V` | Toggle first/third person camera |
 | `E` | Interact (harvest crops, pick carrots) |
 | `F` | Toggle fishing (near pond) |
